@@ -1,14 +1,17 @@
-# app.py (Fully integrated with BRD download & Dashboard)
+# app.py (Compatible with local .env and Streamlit Cloud secrets)
 import streamlit as st
 import os
 from dotenv import load_dotenv
 from ai_engine import analyze_request, generate_brd, display_dashboard
 
-# Load environment variables
+# Load .env if running locally
 load_dotenv()
-API_KEY = os.getenv("OPENAI_API_KEY")
+
+# Get API key (priority: Streamlit secrets, then environment variable)
+API_KEY = st.secrets.get("OPENAI_API_KEY") or os.getenv("OPENAI_API_KEY")
+
 if not API_KEY:
-    st.error("OpenAI API key not found in environment. Please set OPENAI_API_KEY in .env")
+    st.error("OpenAI API key not found. Please set OPENAI_API_KEY in .env or Streamlit secrets.")
     st.stop()
 
 # App title
@@ -36,7 +39,7 @@ if st.sidebar.button("Analyze Request"):
     with st.spinner("Analyzing request..."):
         try:
             # Generate AI output
-            ai_output = analyze_request(request_text)
+            ai_output = analyze_request(request_text, api_key=API_KEY)
             st.subheader("AI Requirement Analysis")
             st.text(ai_output)
 
