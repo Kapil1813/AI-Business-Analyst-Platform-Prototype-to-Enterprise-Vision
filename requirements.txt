@@ -1,10 +1,8 @@
-streamlit
-openai
-pandas
-plotly
-python-docx
 sentence-transformers
 scikit-learn
-python-dotenv
-
-streamlit>=1.25.0 openai>=1.0.0 python-dotenv>=1.0.0 python-docx>=0.8.11 pandas>=2.0.0 plotly>=6.0.0
+streamlit>=1.25.0
+openai>=1.0.0
+python-dotenv>=1.0.0
+python-docx>=0.8.11
+pandas>=2.0.0
+plotly>=6.0.0
