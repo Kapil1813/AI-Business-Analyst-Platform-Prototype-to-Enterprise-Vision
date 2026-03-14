@@ -1,57 +1,56 @@
-# app.py
+# app.py (Fully integrated with BRD download & Dashboard)
 import streamlit as st
 import os
 from dotenv import load_dotenv
-from ai_engine import analyze_request
-from brd_generator import generate_brd
-from similarity_engine import find_similar
-from dashboard import show_dashboard
+from ai_engine import analyze_request, generate_brd, display_dashboard
 
-# Load environment variables from .env
+# Load environment variables
 load_dotenv()
 API_KEY = os.getenv("OPENAI_API_KEY")
+if not API_KEY:
+    st.error("OpenAI API key not found in environment. Please set OPENAI_API_KEY in .env")
+    st.stop()
 
-st.set_page_config(page_title="AI Business Analyst Platform", layout="wide")
-st.title("AI Business Analyst & Requirement Intelligence Platform")
+# App title
+st.title("AI Business Analyst Prototype")
 
-st.sidebar.header("Investment Request Intake")
+# Sidebar form
+st.sidebar.header("Submit Business Request")
 
-# Remove API key input box
-# api_key = st.sidebar.text_input("OpenAI API Key", type="password")
-
-objective = st.sidebar.text_input("Business Objective")
-asset_class = st.sidebar.selectbox(
-    "Asset Class",
-    ["Equities","Fixed Income","Multi Asset","Private Credit"]
+business_objective = st.sidebar.text_input(
+    "Business Objective", 
+    "Monitor cross-asset portfolio risk exposure for daily reporting."
 )
-description = st.sidebar.text_area("Describe the request")
-submit = st.sidebar.button("Analyze Request")
 
-if submit:
-    request_text = f"""
-    Objective: {objective}
+asset_class = st.sidebar.selectbox(
+    "Asset Class", ["Equities", "Fixed Income", "Multi Asset", "Private Credit"]
+)
 
-    Asset Class: {asset_class}
+description = st.sidebar.text_area(
+    "Describe the request", 
+    "We need a dashboard to track portfolio exposure, generate alerts for high-risk positions, and visualize trends over time."
+)
 
-    Description: {description}
-    """
+if st.sidebar.button("Analyze Request"):
+    request_text = f"Business Objective: {business_objective}\nAsset Class: {asset_class}\nRequest: {description}"
+    with st.spinner("Analyzing request..."):
+        try:
+            # Generate AI output
+            ai_output = analyze_request(request_text)
+            st.subheader("AI Requirement Analysis")
+            st.text(ai_output)
 
-    st.header("AI Requirement Analysis")
-    ai_output = analyze_request(request_text, API_KEY)  # use API_KEY from .env
-    st.write(ai_output)
+            # Generate BRD and provide download
+            brd_file = generate_brd(ai_output)
+            st.download_button(
+                label="Download BRD",
+                data=open(brd_file, "rb").read(),
+                file_name=brd_file,
+                mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+            )
 
-    st.header("Similar Requests")
-    similarity = find_similar(description)
-    st.write(similarity)
+            # Display Transformation Dashboard
+            display_dashboard()
 
-    st.header("Generate BRD")
-    file = generate_brd(objective, asset_class, description, ai_output)
-    with open(file, "rb") as f:
-        st.download_button(
-            "Download BRD",
-            f,
-            file_name=file
-        )
-
-st.header("Transformation Dashboard")
-show_dashboard()
+        except Exception as e:
+            st.error(f"Error analyzing request: {e}")
