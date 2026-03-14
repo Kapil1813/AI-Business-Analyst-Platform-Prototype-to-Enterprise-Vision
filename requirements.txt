@@ -5,3 +5,4 @@ plotly
 python-docx
 sentence-transformers
 scikit-learn
+python-dotenv
